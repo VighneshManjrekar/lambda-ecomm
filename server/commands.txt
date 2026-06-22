@@ -1,0 +1,7 @@
+conda create -n hybrid-analytics python=3.12 -y
+
+conda activate hybrid-analytics
+
+pip install -r requirements.txt
+
+uvicorn main:app --reload

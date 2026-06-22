@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProductHub — Catalog</title>
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body>
+
+  <!-- Header / Navigation -->
+  <header class="topbar">
+    <div class="container-fluid">
+      <div class="d-flex align-items-center justify-content-between py-3 flex-wrap gap-3">
+        <div class="brand d-flex">
+          <span class="brand-mark mb-2"><img height="50" src="./img/svg.svg" alt="ProductHub Logo"></span>
+          <h1>ProductHub</h1>
+        </div>
+
+        <div class="search-wrap flex-grow-1">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+              <i class="bi bi-search"></i>
+            </span>
+            <input type="text" id="searchInput" class="form-control border-start-0"
+              placeholder="Search products by name, brand or category…">
+            <button class="btn btn-search" id="searchBtn" type="button">Search</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="container-fluid pb-5">
+    <div class="row gx-4">
+
+      <!-- Sidebar: Filters -->
+      <aside class="col-lg-3">
+        <div class="filter-panel">
+          <h2 class="filter-title">Filters</h2>
+
+          <!-- Price Range Filter -->
+          <div class="filter-group">
+            <label class="filter-label">Price range</label>
+            <div class="price-slider">
+              <div class="slider-track"></div>
+              <div class="slider-range" id="sliderRangeFill"></div>
+              <input type="range" id="minPriceRange" min="0" max="500" step="5" value="0">
+              <input type="range" id="maxPriceRange" min="0" max="500" step="5" value="500">
+            </div>
+            <div class="price-values">
+              <span id="minPriceLabel">€0</span>
+              <span class="price-sep">to</span>
+              <span id="maxPriceLabel">€500</span>
+            </div>
+          </div>
+
+          <!-- Brand Filter -->
+          <div class="filter-group">
+            <label class="filter-label" for="brandFilter">Brand</label>
+            <select id="brandFilter" class="form-select">
+              <option value="">All brands</option>
+            </select>
+          </div>
+
+          <!-- Category Filter -->
+          <div class="filter-group">
+            <label class="filter-label" for="categoryFilter">Category</label>
+            <select id="categoryFilter" class="form-select">
+              <option value="">All categories</option>
+            </select>
+          </div>
+
+          <!-- Filter Action Buttons -->
+          <div class="filter-actions">
+            <button id="applyFiltersBtn" class="btn btn-apply">Apply filters</button>
+            <button id="resetFiltersBtn" class="btn btn-reset">Reset filters</button>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- Main: Product Grid -->
+      <main class="col-lg-9">
+        <div class="d-flex align-items-center justify-content-center justify-content-lg-end" style=" margin-top: 1.5rem;">
+          <button id="seedProductsBtn" class="btn btn-apply">
+            Seed Products
+          </button>
+          <button id="seedEventsBtn" class="btn btn-apply ms-3">
+            Seed Events
+          </button>
+        </div>
+        <!-- Results Count -->
+        <div class="results-bar" id="resultsCount">Loading products…</div>
+
+        <!-- Product Grid -->
+        <div class="row g-4" id="productGrid">
+          <!-- Product cards are injected here by JavaScript -->
+        </div>
+
+        <!-- Pagination -->
+        <div id="paginationBlock" class="pagination-block d-none">
+          <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+            <div id="paginationInfo" class="pagination-summary small text-muted"></div>
+            <nav aria-label="Product pagination">
+              <ul class="pagination mb-0" id="paginationControls"></ul>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Empty State (shown when no results) -->
+        <div id="emptyState" class="empty-state d-none">
+          <i class="bi bi-inboxes"></i>
+          <p>No products match your filters.</p>
+          <button class="btn btn-reset" onclick="resetFilters()">Clear filters</button>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Modal: View Product Details -->
+  <div class="modal fade" id="viewProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="viewModalTitle">Product</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="viewModalBody">
+          <!-- Product details are injected here -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-buy" id="viewModalBuyBtn">Buy now</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast: Action Feedback -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="actionToast" class="toast align-items-center text-bg-dark border-0" role="status" aria-live="polite"
+      aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="actionToastBody">Done.</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+          aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <!-- Bootstrap (required for modals and toasts) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+
+  <!-- App Scripts (in order of dependency) -->
+  <script src="./js/dummyResponse.js"></script>
+
+  <script src="./js/configs.js"></script> <!-- API endpoints and constants -->
+  <script src="./js/api.js"></script> <!-- Backend API calls -->
+
+  <script src="./js/uiHelpers.js"></script> <!-- Rendering and UI utilities -->
+  <script src="./js/buttonHandlers.js"></script> <!-- Event handlers and business logic -->
+  <script src="./js/init.js"></script> <!-- Page initialization -->
+
+</body>
+
+</html>
