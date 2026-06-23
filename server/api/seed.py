@@ -1,9 +1,11 @@
 from fastapi import APIRouter
 from faker import Faker
-from random import choice, uniform
+from random import choice, uniform, choices, randint
 
 from db.mongodb import products_collection
 from db.elasticsearch_client import es
+
+from utils.event_utils import record_event
 
 router = APIRouter(
     prefix="/api/seed",
@@ -44,11 +46,12 @@ def seed_products():
     for product_id in range(1, 201):
 
         category = choice(CATEGORIES)
+        brand = choice(BRANDS)
 
         product = {
             "id": product_id,
             "title": fake.catch_phrase(),
-            "brand": choice(BRANDS),
+            "brand": brand,
             "category": category,
             "price": round(uniform(10, 2000), 2),
             "description": fake.text(max_nb_chars=150)
@@ -85,4 +88,29 @@ def reindex_products():
     return {
         "success": True,
         "indexedCount": indexed
+    }
+
+@router.get("/events")
+def seed_events():
+
+    TOTAL_EVENTS = 1000
+
+    event_types = choices(
+        population=["view", "favorite", "buy"],
+        weights=[80, 15, 5],
+        k=TOTAL_EVENTS
+    )
+
+    for event_type in event_types:
+
+        product_id = randint(1, 200)
+
+        record_event(
+            product_id=product_id,
+            event_type=event_type
+        )
+
+    return {
+        "success": True,
+        "seededCount": TOTAL_EVENTS
     }

@@ -60,9 +60,18 @@ def get_filter_options():
 
     categories = products_collection.distinct("category")
 
+    price_stats = list(products_collection.aggregate([
+        {"$group": {"_id": None, "minPrice": {"$min": "$price"}, "maxPrice": {"$max": "$price"}}}
+    ]))
+
+    min_price = price_stats[0]["minPrice"] if price_stats else 0
+    max_price = price_stats[0]["maxPrice"] if price_stats else 0
+
     return {
         "brands": sorted(brands),
-        "categories": sorted(categories)
+        "categories": sorted(categories),
+        "minPrice": min_price,
+        "maxPrice": max_price
     }
 
 @router.get("/search")
