@@ -17,4 +17,3 @@ def home():
     return {
         "message": "Hybrid Analytics System API Running"
     }
-

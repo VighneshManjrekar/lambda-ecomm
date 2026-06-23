@@ -8,3 +8,4 @@ server/.env
 
 client/js/dummyResponse.js
 client/*.md
+.DS_Store

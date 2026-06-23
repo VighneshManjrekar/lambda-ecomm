@@ -3,6 +3,7 @@ from faker import Faker
 from random import choice, uniform
 
 from db.mongodb import products_collection
+from db.elasticsearch_client import es
 
 router = APIRouter(
     prefix="/api/seed",
@@ -60,4 +61,28 @@ def seed_products():
     return {
         "success": True,
         "seededCount": len(products)
+    }
+
+@router.get("/reindex")
+def reindex_products():
+
+    products = list(
+        products_collection.find({}, {"_id": 0})
+    )
+
+    indexed = 0
+
+    for product in products:
+
+        es.index(
+            index="products",
+            id=product["id"],
+            document=product
+        )
+
+        indexed += 1
+
+    return {
+        "success": True,
+        "indexedCount": indexed
     }

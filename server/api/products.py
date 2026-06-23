@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from db.mongodb import products_collection
+from db.elasticsearch_client import es
 
 router = APIRouter(
     prefix="/api/products",
@@ -15,7 +16,7 @@ def get_products(
     brand: str | None = None,
     category: str | None = None,
     minPrice: float | None = None,
-maxPrice: float | None = None,
+    maxPrice: float | None = None,
 ):
     query = {}
 
@@ -64,6 +65,33 @@ def get_filter_options():
         "categories": sorted(categories)
     }
 
+@router.get("/search")
+def search_products(q: str):
+    print(q)
+    response = es.search(
+    index="products",
+    query={
+        "multi_match": {
+            "query": q,
+            "fields": [
+                "title",
+                "brand",
+                "category",
+                "description"
+            ]
+        }
+    })
+    products = []
+
+    for hit in response["hits"]["hits"]:
+        products.append(hit["_source"])
+
+    return {
+        "items": products,
+        "total": response["hits"]["total"]["value"]
+    }
+
+
 @router.get("/{product_id}")
 def get_product(product_id: int):
 
@@ -79,3 +107,4 @@ def get_product(product_id: int):
         )
 
     return product
+
