@@ -1,17 +1,17 @@
 // Button handlers and event logic
 
 // Global state: cache of current favorites, pagination, and last product list
-let favorites = new Set();
 let currentProducts = [];
 let currentPage = 1;
 let currentPageSize = DEFAULT_PAGE_SIZE;
+let defatultMaxPrice = DEFAULT_PRICE_MAX;
+let defatultMinPrice = DEFAULT_PRICE_MIN;
 let lastQueryParams = {};
 let totalProducts = 0;
 
 // Collect active filter values
 function getActiveQueryParams() {
   return {
-    q: document.getElementById('searchInput').value.trim(),
     brand: document.getElementById('brandFilter').value,
     category: document.getElementById('categoryFilter').value,
     minPrice: document.getElementById('minPriceRange').value,
@@ -19,10 +19,18 @@ function getActiveQueryParams() {
   };
 }
 
+async function loadFilterOptions() {
+    try {
+    const filterData = await api.fetchFilterOptions();
+    populateFilterOptions(filterData.brands, filterData.categories, filterData.minPrice, filterData.maxPrice);
+  } catch (err) {
+    console.error('Failed to load filter options:', err);
+  }
+}
+
 // Load products from backend with params
 async function loadProducts(params = {}) {
   setResultsLoading();
-
   currentPage = Number(params.page) || currentPage;
   currentPageSize = Number(params.pageSize) || currentPageSize;
   lastQueryParams = {
@@ -34,26 +42,33 @@ async function loadProducts(params = {}) {
 
   try {
     const data = await api.fetchProducts(lastQueryParams);
-    console.log('Products loaded:', data);
-    // data = { items: [...], total: number }
     currentProducts = data.items;
-    totalProducts = Number(data.total) || 0;
-    renderProducts(data.items, totalProducts, favorites);
+    totalProducts = Number(data.total);
+    renderProducts(data.items, totalProducts);
     renderPagination(totalProducts, currentPage, currentPageSize);
   } catch (err) {
     console.error('loadProducts failed:', err);
     showToast('Could not load products. Please try again.', true);
     currentProducts = [];
     totalProducts = 0;
-    renderProducts([], 0, favorites);
+    renderProducts([], 0);
     renderPagination(0, currentPage, currentPageSize);
   }
 }
 
 // Search button handler
-function handleSearch() {
+async function handleSearch() {
   currentPage = 1;
-  loadProducts({ ...getActiveQueryParams(), page: currentPage, pageSize: currentPageSize });
+  const searchQuery = document.getElementById('searchInput').value.trim();
+  if (!searchQuery || searchQuery.length === 0) {
+    loadProducts({ ...getActiveQueryParams(), page: currentPage, pageSize: currentPageSize });
+    return;
+  }
+  setResultsLoading();
+  lastQueryParams = { ...lastQueryParams, page: currentPage, pageSize: currentPageSize };
+  const data = await api.searchProduct(searchQuery);
+  renderProducts(data.items, data.total);
+  renderPagination(data.total, currentPage, currentPageSize);
 }
 
 // Apply filters handler
@@ -71,6 +86,7 @@ function resetFilters() {
   document.getElementById('maxPriceRange').value = DEFAULT_PRICE_MAX;
   updateSliderUI();
   currentPage = 1;
+  lastQueryParams = {};
   loadProducts({ page: currentPage, pageSize: currentPageSize });
 }
 
@@ -116,16 +132,8 @@ async function handleBuy(product, btn) {
 
 // Favorite button handler
 async function handleFav(product, btn) {
-  if (favorites.has(product.id)) {
-    showToast(`"${product.title || 'Item'}" is already in favorites.`);
-    return;
-  }
-
   try {
     await api.addFavorite(product.id);
-    favorites.add(product.id);
-    btn.classList.add('is-fav');
-    btn.querySelector('i').className = 'bi bi-heart-fill';
     showToast(`Saved "${product.title || 'item'}" to favorites.`);
   } catch (err) {
     console.error('handleFav failed:', err);
@@ -137,7 +145,8 @@ async function handleFav(product, btn) {
 async function handleView(productId) {
   try {
     const fullDetails = await api.trackProductView(productId);
-    openViewModal(fullDetails, handleBuy);
+    const product = await api.fetchProductById(productId);
+    openViewModal(product, handleBuy);
   } catch (err) {
     console.error('handleView failed:', err);
     showToast('Could not load product details.', true);
@@ -146,52 +155,39 @@ async function handleView(productId) {
 
 // Price slider change handling
 function handlePriceSliderChange() {
-  const minR = document.getElementById('minPriceRange');
-  const maxR = document.getElementById('maxPriceRange');
-  const gap = 5;
+    const minR = document.getElementById('minPriceRange');
+    const maxR = document.getElementById('maxPriceRange');
 
-  minR.addEventListener('input', () => {
-    if (Number(minR.value) > Number(maxR.value) - gap) {
-      minR.value = Number(maxR.value) - gap;
-    }
+    minR.addEventListener('input', updateSliderUI);
+    maxR.addEventListener('input', updateSliderUI);
+
     updateSliderUI();
-  });
-
-  maxR.addEventListener('input', () => {
-    if (Number(maxR.value) < Number(minR.value) + gap) {
-      maxR.value = Number(minR.value) + gap;
-    }
-    updateSliderUI();
-  });
-
-  updateSliderUI();
 }
 
 // Seed products button handler
-function handleSeedProductsButton() {
-  document.getElementById('seedProductsBtn').addEventListener('click', async () => {
+async function handleSeedProductsButton() {
     try {
       console.log('Seeding products...');
-      await api.seedProducts();
+      const res = await api.seedProducts();
       showToast('Products seeded successfully.');
-      loadProducts();
+      if (res && res.success) {
+        loadProducts();
+        loadFilterOptions();
+      }
     } catch (err) {
       console.error('Seeding products failed:', err);
       showToast('Failed to seed products.', true);
     }
-  });
 }
-function handleSeedEventButton() {
-  document.getElementById('seedEventsBtn').addEventListener('click', async () => {
+async function handleSeedEventButton() {
     try {
       console.log('Seeding events...');
       await api.seedEvents();
       showToast('Events seeded successfully.');
+      loadFilterOptions();
     }
     catch (err) {
       console.error('Seeding events failed:', err);
       showToast('Failed to seed events.', true);
     }
-  }
-  );
 }

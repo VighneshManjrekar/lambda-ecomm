@@ -2,14 +2,8 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Load filter options (brands, categories)
-  try {
-    console.log('Fetching filter options...');
-    // const filterData = await api.fetchFilterOptions();
-    // populateFilterOptions(filterData.brands, filterData.categories);
-  } catch (err) {
-    console.error('Failed to load filter options:', err);
-  }
 
+  loadFilterOptions();
   // Load initial product list
   loadProducts();
 

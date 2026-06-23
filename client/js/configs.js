@@ -2,13 +2,14 @@
 const API_BASE = 'http://localhost:8000/api';
 
 const ENDPOINTS = {
+  products: (id) => `${API_BASE}/products/${id}`,
   products: `${API_BASE}/products`,
   filterOptions: `${API_BASE}/products/filter-options`,
-  orders: `${API_BASE}/orders`,
-  favorite: (id) => `${API_BASE}/favorites/${id}`,
-  productView: (id) => `${API_BASE}/products/${id}/view`,
+  orders: (id) => `${API_BASE}/events/${id}/buy`,
+  favorite: (id) => `${API_BASE}/events/${id}/favorite`,
+  productView: (id) => `${API_BASE}/events/${id}/view`,
   seedProducts: `${API_BASE}/seed/products`,
-  seedEvents: `${API_BASE}/seed/events`
+  seedEvents: `${API_BASE}/seed/events`,
 };
 
 // Category-to-color mapping for UI
@@ -21,6 +22,6 @@ const CATEGORY_COLORS = {
 };
 
 // Default price range limits
-const DEFAULT_PRICE_MIN = 0;
-const DEFAULT_PRICE_MAX = 500;
-const DEFAULT_PAGE_SIZE = 4;
+let DEFAULT_PRICE_MIN = 0;
+let DEFAULT_PRICE_MAX = 500;
+let DEFAULT_PAGE_SIZE = 6;

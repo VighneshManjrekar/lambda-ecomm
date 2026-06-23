@@ -5,20 +5,17 @@ const api = {
   async fetchProducts(params = {}) {
     const query = buildQueryString(params);
     const url = ENDPOINTS.products + query;
-    console.log('Fetching products with URL:', url);
-    // const res = await fetch(url);
-    // if (!res.ok) throw new Error(`fetchProducts failed: ${res.status}`);
-    // return res.json();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`fetchProducts failed: ${res.status}`);
+    return res.json();
+  },
 
-    // Temporary dummy response replacement for testing without backend.
-    console.log('fetchProducts called with params:', params);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          ...dummyFetchProducts
-        });
-      }, 500);
-    });
+  // GET /api/products/:id to fetch a single product
+  async fetchProductById(productId) {
+    const url = `${ENDPOINTS.products}/${productId}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`fetchProductById failed: ${res.status}`);
+    return res.json();
   },
 
   // GET /api/products/filter-options
@@ -28,28 +25,32 @@ const api = {
     return res.json();
   },
 
-  // POST /api/orders to create an order
+  // GET /api/events/:id/buy to create an order
   async placeOrder(productId, quantity = 1) {
-    const res = await fetch(ENDPOINTS.orders, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId, quantity })
-    });
+    const res = await fetch(ENDPOINTS.orders(productId));
     if (!res.ok) throw new Error(`placeOrder failed: ${res.status}`);
     return res.json();
   },
 
-  // POST /api/favorites/:id to add favorite
+  // GET /api/events/:id/favorite to add favorite
   async addFavorite(productId) {
-    const res = await fetch(ENDPOINTS.favorite(productId), { method: 'POST' });
+    const res = await fetch(ENDPOINTS.favorite(productId));
     if (!res.ok) throw new Error(`addFavorite failed: ${res.status}`);
     return res.json().catch(() => ({}));
   },
 
-  // POST /api/products/:id/view to log view and fetch product
+  // GET /api/events/:id/view to log view and fetch product
   async trackProductView(productId) {
-    const res = await fetch(ENDPOINTS.productView(productId), { method: 'POST' });
+    const res = await fetch(ENDPOINTS.productView(productId));
     if (!res.ok) throw new Error(`trackProductView failed: ${res.status}`);
+    return res.json();
+  },
+
+  // GET /api/products/search?q=... to search products
+  async searchProduct(query) {
+    const url = `${ENDPOINTS.products}/search?q=${encodeURIComponent(query)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`searchProduct failed: ${res.status}`);
     return res.json();
   },
 

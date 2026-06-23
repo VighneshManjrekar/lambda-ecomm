@@ -1,7 +1,7 @@
 // UI helper functions
 
 // Render the product grid and empty state
-function renderProducts(items, total, favorites) {
+function renderProducts(items, total) {
   const grid = document.getElementById('productGrid');
   const empty = document.getElementById('emptyState');
 
@@ -15,14 +15,13 @@ function renderProducts(items, total, favorites) {
 
   empty.classList.add('d-none');
   items.forEach(product => {
-    grid.insertAdjacentHTML('beforeend', createProductCard(product, favorites));
+    grid.insertAdjacentHTML('beforeend', createProductCard(product));
   });
 }
 
 // Create a product card
-function createProductCard(product, favorites) {
+function createProductCard(product) {
   const color = CATEGORY_COLORS[product.category] || '#8A8478';
-  const isFav = favorites.has(product.id);
   return `
     <div class="col-12 col-md-6 col-lg-4">
       <div class="product-card">
@@ -38,8 +37,8 @@ function createProductCard(product, favorites) {
           <button class="btn btn-buy" data-action="buy" data-id="${product.id}">
             <i class="bi bi-bag-check"></i> Buy
           </button>
-          <button class="btn btn-fav ${isFav ? 'is-fav' : ''}" data-action="fav" data-id="${product.id}" aria-label="Favorite">
-            <i class="bi ${isFav ? 'bi-heart-fill' : 'bi-heart'}"></i>
+          <button class="btn btn-fav" data-action="fav" data-id="${product.id}" aria-label="Favorite">
+            <i class="bi bi-heart"></i>
           </button>
           <button class="btn btn-view" data-action="view" data-id="${product.id}" aria-label="View details">
             <i class="bi bi-eye"></i>
@@ -51,9 +50,23 @@ function createProductCard(product, favorites) {
 }
 
 // Populate filter dropdowns
-function populateFilterOptions(brands = [], categories = []) {
+function populateFilterOptions(brands = [], categories = [], defatultMinPrice = DEFAULT_PRICE_MIN, defatultMaxPrice = DEFAULT_PRICE_MAX) {
   const brandSelect = document.getElementById('brandFilter');
   const catSelect = document.getElementById('categoryFilter');
+  const minR = document.getElementById('minPriceRange');
+  const maxR = document.getElementById('maxPriceRange');
+  DEFAULT_PRICE_MIN = defatultMinPrice;
+  DEFAULT_PRICE_MAX = defatultMaxPrice;
+
+  minR.min = defatultMinPrice;
+  minR.max = defatultMaxPrice;
+  minR.value = defatultMinPrice;
+
+  maxR.min = defatultMinPrice;
+  maxR.max = defatultMaxPrice;
+  maxR.value = defatultMaxPrice;
+
+  updateSliderUI();
 
   // Remove old options (keep "All" placeholder)
   brandSelect.querySelectorAll('option:not([value=""])').forEach(o => o.remove());
@@ -157,14 +170,19 @@ function updateSliderUI() {
   const fill = document.getElementById('sliderRangeFill');
   const range = Number(minR.max) - Number(minR.min);
 
+  if (Number(minR.value) > Number(maxR.value)) {
+    alert("Minimum price cannot be greater than maximum price");
+    return;
+  }
+
   const minPct = ((minR.value - minR.min) / range) * 100;
   const maxPct = ((maxR.value - minR.min) / range) * 100;
 
   fill.style.left = minPct + '%';
   fill.style.width = (maxPct - minPct) + '%';
 
-  document.getElementById('minPriceLabel').textContent = `€${Number(minR.value).toFixed(0)}`;
-  document.getElementById('maxPriceLabel').textContent = `€${Number(maxR.value).toFixed(0)}`;
+  document.getElementById('minPriceLabel').textContent = `€${Number(minR.min).toFixed(2)}`;
+  document.getElementById('maxPriceLabel').textContent = `€${Number(maxR.max).toFixed(2)}`;
 }
 
 // Escape HTML input
