@@ -39,3 +39,19 @@ def record_event(
         "product_id": product_id,
         "event_type": event_type
     }
+
+
+def delete_old_event_records():
+    """
+    Delete old event records 
+    """
+    session.execute("""
+                    Truncate product_events
+                    """)
+    session.execute("""
+                    Truncate product_metrics
+                    """)
+    
+    return {
+        "success": True,
+    }

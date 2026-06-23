@@ -12,6 +12,7 @@ let totalProducts = 0;
 // Collect active filter values
 function getActiveQueryParams() {
   return {
+    q: document.getElementById('searchInput').value.trim(),
     brand: document.getElementById('brandFilter').value,
     category: document.getElementById('categoryFilter').value,
     minPrice: document.getElementById('minPriceRange').value,
@@ -65,8 +66,7 @@ async function handleSearch() {
     return;
   }
   setResultsLoading();
-  lastQueryParams = { ...lastQueryParams, page: currentPage, pageSize: currentPageSize };
-  const data = await api.searchProduct(searchQuery);
+  const data = await api.searchProduct(searchQuery, { ...getActiveQueryParams(), page: currentPage, pageSize: currentPageSize });
   renderProducts(data.items, data.total);
   renderPagination(data.total, currentPage, currentPageSize);
 }
@@ -99,7 +99,9 @@ function handlePaginationClick(e) {
   if (nextPage === currentPage) return;
 
   currentPage = nextPage;
-  loadProducts({ ...lastQueryParams, page: currentPage, pageSize: currentPageSize });
+  getActiveQueryParams();
+  console.log('Pagination click - loading page:', currentPage, 'with params:', lastQueryParams);
+  loadProducts({ ...getActiveQueryParams(), page: currentPage, pageSize: currentPageSize });
 }
 
 // Route product card button clicks

@@ -75,30 +75,91 @@ def get_filter_options():
     }
 
 @router.get("/search")
-def search_products(q: str):
-    print(q)
-    response = es.search(
-    index="products",
-    query={
-        "multi_match": {
-            "query": q,
-            "fields": [
-                "title",
-                "brand",
-                "category",
-                "description"
-            ]
-        }
-    })
-    products = []
+def search_products(
+    q: str | None = None,
+    minPrice: float | None = None,
+    maxPrice: float | None = None,
+    page: int = 1,
+    pageSize: int = 10
+):
+    must = []
+    filters = []
 
-    for hit in response["hits"]["hits"]:
-        products.append(hit["_source"])
+    # Text search
+    if q:
+        must.append({
+            "multi_match": {
+                "query": q,
+                "fields": [
+                    "title",
+                    "brand",
+                    "category",
+                    "description"
+                ]
+            }
+        })
+
+    # Price filters
+    if minPrice is not None or maxPrice is not None:
+        price_filter = {"range": {"price": {}}}
+
+        if minPrice is not None:
+            price_filter["range"]["price"]["gte"] = minPrice
+
+        if maxPrice is not None:
+            price_filter["range"]["price"]["lte"] = maxPrice
+
+        filters.append(price_filter)
+
+    # Build query
+    query = {
+        "bool": {
+            "must": must if must else [{"match_all": {}}],
+            "filter": filters
+        }
+    }
+
+    response = es.search(
+        index="products",
+        query=query,
+        from_=(page - 1) * pageSize,
+        size=pageSize
+    )
+
+    products = [hit["_source"] for hit in response["hits"]["hits"]]
 
     return {
         "items": products,
-        "total": response["hits"]["total"]["value"]
+        "total": response["hits"]["total"]["value"],
+        "page": page,
+        "pageSize": pageSize
     }
+# @router.get("/search")
+# def search_products(q: str):
+    
+#     print(q)
+#     response = es.search(
+#     index="products",
+#     query={
+#         "multi_match": {
+#             "query": q,
+#             "fields": [
+#                 "title",
+#                 "brand",
+#                 "category",
+#                 "description"
+#             ]
+#         }
+#     })
+#     products = []
+
+#     for hit in response["hits"]["hits"]:
+#         products.append(hit["_source"])
+
+#     return {
+#         "items": products,
+#         "total": response["hits"]["total"]["value"]
+#     }
 
 
 @router.get("/{product_id}")

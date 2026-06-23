@@ -5,7 +5,7 @@ from random import choice, uniform, choices, randint
 from db.mongodb import products_collection
 from db.elasticsearch_client import es
 
-from utils.event_utils import record_event
+from utils.event_utils import record_event, delete_old_event_records
 
 router = APIRouter(
     prefix="/api/seed",
@@ -40,7 +40,7 @@ CATEGORIES = [
 def seed_products():
 
     products_collection.delete_many({})
-
+    # delete_old_event_records()
     products = []
 
     for product_id in range(1, 201):
@@ -93,8 +93,9 @@ def reindex_products():
 @router.get("/events")
 def seed_events():
 
-    TOTAL_EVENTS = 1000
-
+    TOTAL_EVENTS = 500
+    delete_old_event_records()
+    
     event_types = choices(
         population=["view", "favorite", "buy"],
         weights=[80, 15, 5],

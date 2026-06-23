@@ -11,8 +11,8 @@ router = APIRouter(
 
 @router.get("/{product_id}/view")
 def view_product(product_id: int):
- record_event(
-product_id,
+ return record_event(
+        product_id,
         "view"
     )
 

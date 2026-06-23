@@ -181,8 +181,8 @@ function updateSliderUI() {
   fill.style.left = minPct + '%';
   fill.style.width = (maxPct - minPct) + '%';
 
-  document.getElementById('minPriceLabel').textContent = `€${Number(minR.min).toFixed(2)}`;
-  document.getElementById('maxPriceLabel').textContent = `€${Number(maxR.max).toFixed(2)}`;
+  document.getElementById('minPriceLabel').textContent = `€${Number(minR.value).toFixed(2)}`;
+  document.getElementById('maxPriceLabel').textContent = `€${Number(maxR.value).toFixed(2)}`;
 }
 
 // Escape HTML input

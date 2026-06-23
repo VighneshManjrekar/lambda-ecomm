@@ -47,8 +47,9 @@ const api = {
   },
 
   // GET /api/products/search?q=... to search products
-  async searchProduct(query) {
-    const url = `${ENDPOINTS.products}/search?q=${encodeURIComponent(query)}`;
+  async searchProduct(query,params={}) {
+    const param_query = buildQueryString(params);
+    const url = `${ENDPOINTS.products}/search${param_query}&q=${encodeURIComponent(query)}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`searchProduct failed: ${res.status}`);
     return res.json();
