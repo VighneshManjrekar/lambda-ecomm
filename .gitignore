@@ -7,6 +7,6 @@ server/__pycache__/__pycache__
 server/.env
 
 client/js/dummyResponse.js
+client/notebook/.ipynb_checkpoints
 client/*.md
 .DS_Store
-client/notebook/**
