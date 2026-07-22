@@ -40,7 +40,7 @@ CATEGORIES = [
 def seed_products():
 
     products_collection.delete_many({})
-    # delete_old_event_records()
+    delete_old_event_records()
     products = []
 
     for product_id in range(1, 201):
@@ -60,7 +60,7 @@ def seed_products():
         products.append(product)
 
     products_collection.insert_many(products)
-
+    reindex_products()
     return {
         "success": True,
         "seededCount": len(products)

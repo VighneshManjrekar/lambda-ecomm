@@ -12,7 +12,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500"],
+    allow_origins=["*"], # allowing all since user might not use vs code live server for hosting index.html
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
